@@ -301,7 +301,6 @@ os_overcommits_proc(void)
 void
 pages_boot(void)
 {
-
 #ifndef _WIN32
 	mmap_flags = MAP_PRIVATE | MAP_ANON;
 #endif
