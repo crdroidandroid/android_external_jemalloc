@@ -206,9 +206,14 @@ if test "x${je_cv_cray}" = "xyes" ; then
 fi
 
 if test "x$GCC" = "xyes" ; then
-  JE_CFLAGS_ADD([-std=gnu99])
-  if test "x$je_cv_cflags_added" = "x-std=gnu99" ; then
+  JE_CFLAGS_ADD([-std=gnu11])
+  if test "x$je_cv_cflags_added" = "x-std=gnu11" ; then
     AC_DEFINE_UNQUOTED([JEMALLOC_HAS_RESTRICT])
+  else
+    JE_CFLAGS_ADD([-std=gnu99])
+    if test "x$je_cv_cflags_added" = "x-std=gnu99" ; then
+      AC_DEFINE_UNQUOTED([JEMALLOC_HAS_RESTRICT])
+    fi
   fi
   JE_CFLAGS_ADD([-Wall])
   JE_CFLAGS_ADD([-Werror=declaration-after-statement])
