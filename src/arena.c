@@ -1283,7 +1283,7 @@ arena_decay_deadline_init(arena_t *arena)
 	if (arena->decay.time > 0) {
 		nstime_t jitter;
 
-		nstime_init(&jitter, prng_range(&arena->decay.jitter_state,
+		nstime_init(&jitter, prng_range_u64(&arena->decay.jitter_state,
 		    nstime_ns(&arena->decay.interval)));
 		nstime_add(&arena->decay.deadline, &jitter);
 	}
@@ -2662,7 +2662,8 @@ arena_malloc_large(tsdn_t *tsdn, arena_t *arena, szind_t binind, bool zero)
 		 * that is a multiple of the cacheline size, e.g. [0 .. 63) * 64
 		 * for 4 KiB pages and 64-byte cachelines.
 		 */
-		r = prng_lg_range(&arena->offset_state, LG_PAGE - LG_CACHELINE);
+		r = prng_lg_range_zu(&arena->offset_state, LG_PAGE -
+		    LG_CACHELINE, false);
 		random_offset = ((uintptr_t)r) << LG_CACHELINE;
 	} else
 		random_offset = 0;
@@ -3610,7 +3611,7 @@ arena_new(tsdn_t *tsdn, unsigned ind)
 		 * deterministic seed.
 		 */
 		arena->offset_state = config_debug ? ind :
-		    (uint64_t)(uintptr_t)arena;
+		    (size_t)(uintptr_t)arena;
 	}
 
 	arena->dss_prec = chunk_dss_prec_get();
