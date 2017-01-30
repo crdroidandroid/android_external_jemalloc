@@ -16,13 +16,14 @@ typedef int witness_comp_t (const witness_t *, const witness_t *);
 
 #define	WITNESS_RANK_INIT		1U
 #define	WITNESS_RANK_CTL		1U
-#define	WITNESS_RANK_ARENAS		2U
+#define WITNESS_RANK_TCACHES		2U
+#define	WITNESS_RANK_ARENAS		3U
 
-#define	WITNESS_RANK_PROF_DUMP		3U
-#define	WITNESS_RANK_PROF_BT2GCTX	4U
-#define	WITNESS_RANK_PROF_TDATAS	5U
-#define	WITNESS_RANK_PROF_TDATA		6U
-#define	WITNESS_RANK_PROF_GCTX		7U
+#define	WITNESS_RANK_PROF_DUMP		4U
+#define	WITNESS_RANK_PROF_BT2GCTX	5U
+#define	WITNESS_RANK_PROF_TDATAS	6U
+#define	WITNESS_RANK_PROF_TDATA		7U
+#define	WITNESS_RANK_PROF_GCTX		8U
 
 /*
  * Used as an argument to witness_assert_depth_to_rank() in order to validate
@@ -30,11 +31,11 @@ typedef int witness_comp_t (const witness_t *, const witness_t *);
  * witness_assert_depth_to_rank() is inclusive rather than exclusive, this
  * definition can have the same value as the minimally ranked core lock.
  */
-#define WITNESS_RANK_CORE		8U
+#define WITNESS_RANK_CORE		9U
 
 #define	WITNESS_RANK_ARENA		9U
 #define	WITNESS_RANK_ARENA_CHUNKS	10U
-#define	WITNESS_RANK_ARENA_NODE_CACHE	11
+#define	WITNESS_RANK_ARENA_NODE_CACHE	11U
 
 #define	WITNESS_RANK_BASE		12U
 
