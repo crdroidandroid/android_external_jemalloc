@@ -30,16 +30,13 @@ typedef enum {
 	purge_mode_limit = 2
 } purge_mode_t;
 /* ANDROID change */
-/* Use the decay mode purge method.
- * Setting this value to zero results in performance issues because it
- * causes purges at every free. Leave the default at zero, but zygote
- * processes will set this to one using mallopt. This allows apps which
- * tend to be active to benefit from the extra performance, but allow system
- * servers to free PSS while they are sitting idle.
+/* Use the decay mode purge method. Do not set this value to zero, since
+ * forcing a purge immediately affects performance negatively. Using a
+ * small value provides a compromise between performance and extra PSS.
  */
 #define	PURGE_DEFAULT		purge_mode_decay
 /* Default decay time in seconds. */
-#define	DECAY_TIME_DEFAULT	0
+#define	DECAY_TIME_DEFAULT	1
 /* End ANDROID change */
 /* Number of event ticks between time checks. */
 #define	DECAY_NTICKS_PER_UPDATE	1000
@@ -387,7 +384,7 @@ struct arena_s {
 	 * PRNG state for cache index randomization of large allocation base
 	 * pointers.
 	 */
-	size_t			offset_state;
+	uint64_t		offset_state;
 
 	dss_prec_t		dss_prec;
 
@@ -515,6 +512,7 @@ static const size_t	large_pad =
 #endif
     ;
 
+extern bool		opt_thp;
 extern purge_mode_t	opt_purge;
 extern const char	*purge_mode_names[];
 extern ssize_t		opt_lg_dirty_mult;

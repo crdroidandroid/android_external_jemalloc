@@ -1078,18 +1078,18 @@ malloc_conf_init(void)
 					    k, klen, v, vlen);		\
 				} else if (clip) {			\
 					if (CONF_MIN_##check_min(um,	\
-					    (min)))			\
+					    (t)(min)))			\
 						o = (t)(min);		\
 					else if (CONF_MAX_##check_max(	\
-					    um, (max)))			\
+					    um, (t)(max)))		\
 						o = (t)(max);		\
 					else				\
 						o = (t)um;		\
 				} else {				\
 					if (CONF_MIN_##check_min(um,	\
-					    (min)) ||			\
+					    (t)(min)) ||		\
 					    CONF_MAX_##check_max(um,	\
-					    (max))) {			\
+					    (t)(max))) {		\
 						malloc_conf_error(	\
 						    "Out-of-range "	\
 						    "conf value",	\
@@ -1139,16 +1139,18 @@ malloc_conf_init(void)
 
 			CONF_HANDLE_BOOL(opt_abort, "abort", true)
 			/*
-			 * Chunks always require at least one header page,
-			 * as many as 2^(LG_SIZE_CLASS_GROUP+1) data pages, and
-			 * possibly an additional page in the presence of
-			 * redzones.  In order to simplify options processing,
-			 * use a conservative bound that accommodates all these
-			 * constraints.
+			 * Chunks always require at least one header page, as
+			 * many as 2^(LG_SIZE_CLASS_GROUP+1) data pages (plus an
+			 * additional page in the presence of cache-oblivious
+			 * large), and possibly an additional page in the
+			 * presence of redzones.  In order to simplify options
+			 * processing, use a conservative bound that
+			 * accommodates all these constraints.
 			 */
 			CONF_HANDLE_SIZE_T(opt_lg_chunk, "lg_chunk", LG_PAGE +
-			    LG_SIZE_CLASS_GROUP + (config_fill ? 2 : 1),
-			    (sizeof(size_t) << 3) - 1, yes, yes, true)
+			    LG_SIZE_CLASS_GROUP + 1 + ((config_cache_oblivious
+			    || config_fill) ? 1 : 0), (sizeof(size_t) << 3) - 1,
+			    yes, yes, true)
 			if (strncmp("dss", k, klen) == 0) {
 				int i;
 				bool match = false;
@@ -1272,6 +1274,9 @@ malloc_conf_init(void)
 				CONF_HANDLE_SSIZE_T(opt_lg_tcache_max,
 				    "lg_tcache_max", -1,
 				    (sizeof(size_t) << 3) - 1)
+			}
+			if (config_thp) {
+				CONF_HANDLE_BOOL(opt_thp, "thp", true)
 			}
 			if (config_prof) {
 				CONF_HANDLE_BOOL(opt_prof, "prof", true)
@@ -2839,7 +2844,6 @@ _malloc_prefork(void)
 	witness_prefork(tsd);
 	/* Acquire all mutexes in a safe order. */
 	ctl_prefork(tsd_tsdn(tsd));
-	tcache_prefork(tsd_tsdn(tsd));
 	malloc_mutex_prefork(tsd_tsdn(tsd), &arenas_lock);
 	prof_prefork0(tsd_tsdn(tsd));
 	for (i = 0; i < 3; i++) {
@@ -2899,7 +2903,6 @@ _malloc_postfork(void)
 	}
 	prof_postfork_parent(tsd_tsdn(tsd));
 	malloc_mutex_postfork_parent(tsd_tsdn(tsd), &arenas_lock);
-	tcache_postfork_parent(tsd_tsdn(tsd));
 	ctl_postfork_parent(tsd_tsdn(tsd));
 }
 
@@ -2924,7 +2927,6 @@ jemalloc_postfork_child(void)
 	}
 	prof_postfork_child(tsd_tsdn(tsd));
 	malloc_mutex_postfork_child(tsd_tsdn(tsd), &arenas_lock);
-	tcache_postfork_child(tsd_tsdn(tsd));
 	ctl_postfork_child(tsd_tsdn(tsd));
 }
 
